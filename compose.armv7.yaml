@@ -1,0 +1,14 @@
+services:
+  # Keep Adminer in the shared compose file, but do not build/start it on the Pi by default.
+  adminer:
+    profiles: ["adminer"]
+
+  db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile.armv7
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.armv7

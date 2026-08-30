@@ -1,0 +1,48 @@
+services:
+  db:
+    build:
+      context: ./database
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ais
+      POSTGRES_USER: ais
+      POSTGRES_PASSWORD: ais
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ais -d ais"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ais_postgres_data:/var/lib/postgresql/data
+
+  app:
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://ais:ais@db:5432/ais
+      VESSELS_CONFIG_PATH: /app/config/vessels.json
+      HISTORY_SAMPLE_SECONDS: ${HISTORY_SAMPLE_SECONDS:-60}
+      TRACK_GAP_MINUTES: ${TRACK_GAP_MINUTES:-45}
+      TRIP_GAP_HOURS: ${TRIP_GAP_HOURS:-6}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  adminer:
+    image: adminer:4
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8081:8080"
+    restart: unless-stopped
+
+volumes:
+  ais_postgres_data:

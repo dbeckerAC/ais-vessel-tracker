@@ -1,0 +1,45 @@
+# Secrets and local environment overrides
+.env
+.env.*
+!.env.example
+
+# Operating-system and editor files
+.DS_Store
+._*
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python caches, virtual environments, and test output
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+coverage.xml
+htmlcov/
+.venv/
+venv/
+
+# Frontend dependencies and build output
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/npm-debug.log*
+*.tsbuildinfo
+
+# Logs and local database artifacts
+*.log
+*.sqlite
+*.sqlite3
+*.db
+database/pgdata/
+postgres-data/
+/backups/
+
+# Local planning notes (kept on the developer machine, not committed)
+IMPLEMENTATION_PLAN.md
