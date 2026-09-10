@@ -16,6 +16,8 @@ Example of the deployed vessel tracker app.
 
 Requirements: Git and Docker with Docker Compose.
 
+### Start the application locally
+
 Create a local configuration, add your AISStream key, and start the stack:
 
 ```sh
@@ -26,6 +28,8 @@ docker compose up --build -d
 
 Open <http://localhost:8000>. Add vessels in the interface; the public seed list is intentionally empty.
 
+### Check local status
+
 Useful checks:
 
 ```sh
@@ -34,13 +38,41 @@ docker compose logs -f app
 curl http://localhost:8000/api/v1/status
 ```
 
-From a Mac, a Pi status report (containers, API/stream state, host resources, database size, table sizes, and estimated row counts) is available with:
+### Stop the local application
+
+Stop the containers while preserving the database:
+
+```sh
+docker compose down
+```
+
+Do not use `docker compose down -v` unless you intentionally want to delete all locally stored history.
+
+### Optional: run it on a Raspberry Pi
+
+The following instructions are only for deploying and maintaining the application on a Raspberry Pi from a Mac. They are not needed for local use.
+
+#### Deploy to the Pi
+
+Set `PI_HOST` and `PI_DIR` in the local `.env`, create the remote `.env` with the API keys, then run:
+
+```sh
+./scripts/deploy-pi.sh
+```
+
+The script creates the remote project directory and synchronizes the application, database build files, `compose.yaml`, and the ARM override. The override puts Adminer behind the `adminer` profile, so the normal Pi deployment builds and starts only the app and database. A new Pi still needs SSH access, `rsync`, Docker Compose, and permission to use Docker; the script intentionally never copies `.env`.
+
+#### Check the Pi status
+
+To get a report covering the containers, API and stream state, host resources, database size, table sizes, and estimated row counts, run:
 
 ```sh
 ./scripts/status-pi.sh
 ```
 
 The report also includes a compact position-report breakdown by provider and source.
+
+#### Back up the Pi database
 
 To create a compressed logical backup on the Mac while PostgreSQL keeps running:
 
@@ -50,21 +82,20 @@ To create a compressed logical backup on the Mac while PostgreSQL keeps running:
 
 The script uses `PI_HOST` and `PI_DIR` from `.env` and writes the dump to `./backups/`. Backup files are ignored by Git.
 
-To deploy the ARMv7 build from the Mac, set `PI_HOST` and `PI_DIR` in the local `.env`, create the remote `.env` with the API keys, then run:
+#### Fix track outliers
+
+To review isolated, physically impossible track spikes and optionally delete each exact
+position report from the Pi database:
 
 ```sh
-./scripts/deploy-pi.sh
+./scripts/fix-track-outliers-pi.sh
 ```
 
-The script creates the remote project directory and synchronizes the application, database build files, `compose.yaml`, and the ARM override. The override puts Adminer behind the `adminer` profile, so the normal Pi deployment builds and starts only the app and database. A new Pi still needs SSH access, `rsync`, Docker Compose, and permission to use Docker; the script intentionally never copies `.env`.
-
-Stop the containers while preserving the database:
-
-```sh
-docker compose down
-```
-
-Do not use `docker compose down -v` unless you intentionally want to delete all locally stored history.
+The script shows the vessel, time, position, feed, reported speed, neighboring
+positions, distances, and implied speeds before asking for confirmation. Pressing
+Enter keeps the row; only `y` deletes it. Detection thresholds can be overridden
+with `OUTLIER_MIN_SPEED_KNOTS`, `OUTLIER_MAX_BRIDGE_SPEED_KNOTS`, and
+`OUTLIER_MIN_DISTANCE_KM`.
 
 ## Configuration
 
